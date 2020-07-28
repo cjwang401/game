@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>click the right color</title>
+    <style>
+        p{
+            text-align: center;
+        }
+        .fir{
+            width: 100px;
+            height: 100px;
+            background-color: blue;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+<!--那行文字-->
+<p>click blue</p>
+<!--那个方框-->
+<a href="javascript:void(0)"><div class="fir"></div></a>
+
+<script>
+    var count = 0;
+    var fir1 = document.getElementsByClassName("fir");
+    var pp = document.getElementsByTagName("p");
+    //刚进入页面时
+    fir1[0].onmouseenter = function () {
+        fir1[0].style.background = "red";
+    };
+    fir1[0].onmouseleave = function () {
+        fir1[0].style.background = "blue";
+    };
+    fir1[0].onclick = function () {
+        alert("wrong !!! fool !!!");
+        count++;
+            //防止玩家心态爆炸，限制了临界值为10，狠人可以调大数值，好心的人也可以加个定时器
+            if(count >= 10)
+            {
+                pp[0].innerText = "fine, fine, just a joke click blue";
+                fir1[0].style.background = "blue";
+                fir1[0].onclick = function () {
+                    alert("VICTORY !!!");
+                };
+                fir1[0].onmouseenter = function () {
+                };
+                fir1[0].onmouseleave = function () {
+                };
+            }
+            //下面2个elif是图片在红蓝色切换的同时也切换文字
+            else if(count%2 == 0)
+            {
+                pp[0].innerText = "click blue";
+                fir1[0].style.background = "blue";
+                fir1[0].onmouseenter = function () {
+                    fir1[0].style.background = "red";
+                };
+                fir1[0].onmouseleave = function () {
+                    fir1[0].style.background = "blue";
+                };
+            }
+            else if(count%2 != 0)
+            {
+                pp[0].innerText = "click red";
+                fir1[0].style.background = "red";
+                fir1[0].onmouseenter = function () {
+                    fir1[0].style.background = "blue";
+                };
+                fir1[0].onmouseleave = function () {
+                    fir1[0].style.background = "red";
+                };
+            }
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+#gameCanvas{
+	background-color: #000000;
+}
+</style>
+<body>
+ 
+<canvas id="gameCanvas" width="480" height="600" tabindex="0">
+Your browser does not support the HTML5 canvas tag.</canvas>
+<script>
+ 
+function createMatrix(rows, columns)  {
+    this.rows = rows;
+    this.columns = columns;
+    this.myarray = new Array(this.rows);
+    for (var i=0; i < this.columns; i +=1) {
+        this.myarray[i]=new Array(this.rows)
+    }
+    return this.myarray;
+}
+ 
+function extend(ChildClass, ParentClass) {
+	ChildClass.prototype = new ParentClass();
+	ChildClass.prototype.constructor = ChildClass;
+}
+ 
+function Circle(){
+	this.radius = 0;
+	this.centerX = 0;
+	this.centerY = 0;
+	this.color = "#FFFFFF";
+ 
+}
+function MainCircle(){
+	this.direction = 4;
+	this.countHit = 0;
+}
+ 
+extend(MainCircle,Circle);
+MainCircle.prototype.handleMotion = function (vx,vy) {
+	//direction presentation
+	//0 1 2   ↖ ↑ ↗
+	//X X X : 
+	//3 4 5   ↙ ↓ ↘
+	if(this.direction>2){
+		this.centerY += vy;
+	}else{
+		this.centerY -= vy;
+	}
+	if(this.direction==2 || this.direction==5){
+		this.centerX += vx;
+	}else if(this.direction==0 || this.direction==3){
+		this.centerX -= vx;
+	}
+}
+//get Random left or right use form direction 1 and 4
+MainCircle.prototype.setLeftOrRight = function (){
+	var trueOrFalse = Math.floor((Math.random()*2));
+	if(this.direction==1){
+		if(trueOrFalse)
+			this.direction = 3;
+		else
+			this.direction = 5;
+	}else if(this.direction==4){
+		if(trueOrFalse)
+			this.direction = 0;
+		else
+			this.direction = 2;
+	}
+}
+ 
+function Rectangle(){
+	this.width = 0;
+	this.height = 0;
+	this.topX=0;
+	this.topY=0;
+	this.color = "#FFFFFF";
+}
+ 
+function MainRect(){
+	this.direction = 9;
+	this.isMove = false;
+}
+extend(MainRect,Rectangle);
+MainRect.prototype.handleCollision = function (circle){
+	if((circle.centerY)>=this.topY && 
+		(circle.centerY)<=this.topY+this.height &&
+		(circle.centerX)<=this.topX+this.width &&
+		(circle.centerX)>=this.topX
+		){
+		//direction presentation
+		//0 1 2   ↖ ↑ ↗
+		//X X X : 
+		//3 4 5   ↙ ↓ ↘
+		if(circle.direction==4){
+			circle.setLeftOrRight();
+		}
+		else if(circle.direction==3){
+				//   o    
+				//    ↖↙
+				circle.direction =0;
+				this.alive = false;
+			}
+			else if(circle.direction==5){
+				//        o    
+				//    ↘↗
+				circle.direction =2;
+				this.alive = false;
+			}
+		
+		else if(circle.centerY<this.topY+this.height && circle.centerY>this.topY){
+			if(circle.direction==0){
+				//   	o    
+				//    ↗
+				//	  ↖
+				circle.direction =2;
+				this.alive = false;
+			}
+			else if(circle.direction==3){
+				//    ↙    
+				//    ↘
+				//		o
+				circle.direction =5;
+				this.alive = false;
+			}
+			else if(circle.direction==5){
+				//    ↘    
+				//    ↙
+				//	 o
+				circle.direction =3;
+				this.alive = false;
+			}
+			else if(circle.direction==2){
+				//   o   
+				//    ↖
+				//	  ↗
+				circle.direction =0;
+				this.alive = false;
+			}
+		}
+		
+	}
+}
+ 
+ 
+MainRect.prototype.handleMotion = function () {
+	//direction presentation
+	//6 9 7 : ← ● →
+	if(this.direction==6 && this.topX>=0){
+		this.isMove = true;
+		this.topX -= 15;
+	}else if(this.direction==7 && this.topX+this.width<=c.width){
+		this.isMove = true;
+		this.topX += 15;
+	}
+}
+ 
+function Brick(){
+	this.alive=true;
+}
+extend(Brick,Rectangle);
+Brick.prototype.handleCollision = function (circle){
+		//direction presentation
+		//0 1 2   ↖ ↑ ↗
+		//X X X : 
+		//3 4 5   ↙ ↓ ↘  
+	if((circle.centerY)>this.topY-circle.radius && 
+		(circle.centerY)<(this.topY+this.height)+circle.radius &&
+		(circle.centerX)<this.topX+this.width+circle.radius &&
+		(circle.centerX)>this.topX-circle.radius
+		){
+		if(circle.centerY<this.topY+this.height && circle.centerY>this.topY){
+			if(circle.direction==0){
+				//   	o    
+				//    ↗
+				//	  ↖
+				circle.direction =2;
+				this.alive = false;
+				circle.countHit++;
+			}
+			else if(circle.direction==3){
+				//    ↙    
+				//    ↘
+				//		o
+				circle.direction =5;
+				this.alive = false;
+				circle.countHit++;
+			}
+			else if(circle.direction==5){
+				//    ↘    
+				//    ↙
+				//	 o
+				circle.direction =3;
+				this.alive = false;
+				circle.countHit++;
+			}
+			else if(circle.direction==2){
+				//   o   
+				//    ↖
+				//	  ↗
+				circle.direction =0;
+				this.alive = false;
+				circle.countHit++;
+			}
+		}
+		else if(circle.centerY<this.topY+this.height+circle.radius){
+			if(circle.direction==0){
+				//    ↙↖   
+				//   o
+				circle.direction =3;
+				this.alive = false;
+				circle.countHit++;
+			}else if(circle.direction==2){
+				//    ↗↘   
+				//        o
+				circle.direction =5;
+				this.alive = false;
+				circle.countHit++;
+			}
+		}
+		else if(circle.centerY>this.topY-circle.radius){
+			if(circle.direction==3){
+				//   o    
+				//    ↖↙
+				circle.direction =0;
+				this.alive = false;
+				circle.countHit++;
+			}
+			else if(circle.direction==5){
+				//        o    
+				//    ↘↗
+				circle.direction =2;
+				this.alive = false;
+				circle.countHit++;
+			}
+		}
+	}
+}
+ 
+function doKeyUp(e){
+	if (e.keyCode == 37) {
+		mainRect.direction = 9;
+	}
+	if (e.keyCode == 39) {
+		mainRect.direction = 9;
+	}
+}
+ 
+function doKeyDown(e){
+	if (e.keyCode == 37) {
+		mainRect.direction = 6;
+	}
+	if (e.keyCode == 39) {
+		mainRect.direction = 7;
+	}
+	if(e.keyCode == 38){
+		mainRect.topX=0;
+		mainRect.width += c.width;
+	}
+	if(e.keyCode == 40){
+		mainRect.topX = c.width/2-5 - c.width/12;
+		mainRect.width -=c.width;
+	}
+}
+function doClick(e){
+	if(startFlag){
+		// debug("x : "+e.clientX+"y : "+e.clientY);
+		if(e.clientX>=startButton.centerX-startButton.radius &&
+			e.clientX<=startButton.centerX+startButton.radius &&
+			e.clientY>=startButton.centerY-startButton.radius &&
+			e.clientY<=startButton.centerY+startButton.radius 
+			){
+				initGameObject();
+				checking = setInterval(
+					checkInterval,10
+				);
+				drawGame = setInterval(
+					gameInterval,40
+				);
+		}
+	}
+}
+ 
+function checkClean (circle) {
+	if(circle.countHit>=21){
+		clearInterval(drawGame);
+		clearInterval(checking);
+		cleanBackground();
+		debug("You Win! Click red button to start again!");
+		startFlag = true;
+		createCircle(startButton);
+	}
+}
+ 
+function debug(displayText1){
+	ctx.fillStyle = '#f00';
+	ctx.textBaseline = 'bottom';
+	ctx.font = "bold, 20px, san-serif";
+	ctx.fillText(displayText1, 20,c.height-30);
+}
+function printMark(displayText1){
+	ctx.fillStyle = '#f00';
+	ctx.textBaseline = 'bottom';
+	ctx.font = "bold, 20px, san-serif";
+	ctx.fillText(displayText1, 20,c.height-15);
+}
+function cleanBackground(){
+	ctx.clearRect(0,0,480,600);
+}
+function createCircle(circle){
+	ctx.beginPath();
+	ctx.arc(circle.centerX, circle.centerY, circle.radius, 0, 2 * Math.PI, false);
+	ctx.fillStyle = Circle.color;
+	ctx.fill();
+}
+function createRectangle(rectangle){
+	ctx.fillStyle=rectangle.color;
+	ctx.fillRect(rectangle.topX,rectangle.topY,rectangle.width,rectangle.height);
+}
+ 
+function handleCanvasCollision(circle){
+		//direction presentation
+		//0 1 2   ↖ ↑ ↗
+		//X X X : 
+		//3 4 5   ↙ ↓ ↘
+	if((circle.centerY+circle.radius)>=c.height){
+			clearInterval(drawGame);
+			clearInterval(checking);
+			cleanBackground();
+			debug("Game Over! Click red button to start again!");
+			printMark("Mark : "+mainCircle.countHit*100);
+			startFlag = true;
+			createCircle(startButton);
+		}
+	else if(circle.direction!=4 && circle.direction!=1){
+		if((circle.centerX+circle.radius)>=c.width){
+			if(circle.direction==2){
+				circle.direction =0;
+			}
+			else if(circle.direction==5){
+				circle.direction =3;
+			}
+		}else if((circle.centerX-circle.radius)<=0){
+			if(circle.direction==0){
+				circle.direction =2;
+			}
+			else if(circle.direction==3){
+				circle.direction =5;
+			}
+		}else if((circle.centerY-circle.radius)<=0){
+			if(circle.direction==0){
+				circle.direction =3;
+			}
+			else if(circle.direction==2){
+				circle.direction =5;
+			}
+		}
+	}
+}
+ 
+ 
+var c=document.getElementById("gameCanvas");
+c.addEventListener('keydown', doKeyDown, true);
+c.addEventListener('keyup', doKeyUp, true);
+c.addEventListener("click", doClick, false);
+c.tabindex = 0;
+var ctx=c.getContext("2d");
+var mainCircle = new MainCircle();
+var startButton = new Circle();
+var startFlag = false;
+var brickArr = createMatrix(3,7);
+var mainRect = new MainRect();
+var vx = 0;
+var vy = 0;
+var a = 0.01;
+ 
+function initGameObject(){
+//Circle Ball
+startFlag = false;
+mainCircle.radius = 10;
+mainCircle.centerX = c.width/2-5;
+mainCircle.centerY = 480-100;
+mainCircle.direction = 4;
+mainCircle.countHit = 0;
+ 
+ 
+startButton.radius = 30;
+startButton.centerX = c.width/2-15;
+startButton.centerY = 480-200;
+ 
+//Rect Brick
+for(var i=0;i<3;i++){
+	for(var j=0;j<7;j++){
+		brickArr[i][j] = new Brick();
+		if(j>0){
+			brickArr[i][j].topX = 13+(j*brickArr[0][0].width+10*j);
+		}else{
+			brickArr[i][j].topX = 13;
+		}
+		if(i>0){
+			brickArr[i][j].topY = 13+(i*brickArr[0][0].height+10*i);
+		}else{
+			brickArr[i][j].topY = 13;
+		}
+		brickArr[i][j].width = c.width/7.2-10;
+		brickArr[i][j].height = 110/3;
+	}
+}
+ 
+ 
+mainRect.topX = mainCircle.centerX-c.width/12;
+mainRect.topY = 480;
+mainRect.width = c.width/6;
+mainRect.height = 30;
+ 
+ 
+//speed
+vx = Math.floor(Math.random()*5);
+if(vx<3){vx+=2;}
+vy = Math.floor(Math.random()*6);
+if(vy<4){vy+=3;}
+ 
+}
+ 
+ 
+function gameInterval(){
+	if(vy<10&&vx<10){
+		vy += a;
+		vx += a;
+	}
+	cleanBackground();
+	checkClean(mainCircle);
+	printMark("Mark : "+mainCircle.countHit*100);
+	mainRect.handleMotion();
+	for(var i=0;i<3;i++){
+		for(var j=0;j<7;j++){
+			if(brickArr[i][j].alive){
+				brickArr[i][j].handleCollision(mainCircle);
+			}
+			if(brickArr[i][j].alive){
+				createRectangle(brickArr[i][j]);
+			}
+		}
+	}
+	mainRect.handleCollision(mainCircle);
+	mainCircle.handleMotion(vx,vy);
+	createRectangle(mainRect);
+	createCircle(mainCircle);
+}
+ 
+function checkInterval(){
+	handleCanvasCollision(mainCircle);
+	for(var i=0;i<3;i++){
+		for(var j=0;j<7;j++){
+			if(brickArr[i][j].alive){
+				brickArr[i][j].handleCollision(mainCircle);
+			}
+		}
+	}
+}
+ 
+initGameObject();
+startFlag = true;
+debug("Press red button to start.");
+createCircle(startButton);
+</script>
+ 
+</body>
+</html>
